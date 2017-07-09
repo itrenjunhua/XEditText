@@ -25,7 +25,7 @@ import android.util.AttributeSet;
  */
 public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
-     * 默认分隔符
+     * 默认分隔符，{@code ' '} 表示
      */
     private static final char DEFAULT_SPLIT = ' ';
     /**
@@ -94,18 +94,18 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 设置分割符，默认' '
      *
-     * @param mSplitChar 需要的分隔符
+     * @param splitChar 需要的分隔符
      * @return
      */
-    public XEditText setSplitChar(@NonNull char mSplitChar) {
+    public XEditText setSplitChar(@NonNull char splitChar) {
         if (TextUtils.isEmpty(mSplitChar + "")) return this;
-        this.mSplitChar = mSplitChar;
+        this.mSplitChar = splitChar;
         return this;
     }
 
     /**
      * 设置EditText分割样式，如 {@code new int[]{3,4,4}} 表示大陆手机号码的样式，<br/>
-     * <b>注意：如果设置了模板，表示已经设置的最大的长度</b>
+     * <b>注意：如果设置了模板，表示已经设置的最大的长度，如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
      *
      * @param templet 模板样式 如：{@code new int[]{3,4,4}} 显示：132 1234 5678
      * @return
@@ -122,8 +122,74 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
                 temp += 1;
             }
         }
+        if (TextUtils.isEmpty(this.mSplitChar + ""))
+            this.mSplitChar = DEFAULT_SPLIT;
         maxLength = temp;
         return this;
+    }
+
+    /**
+     * 设置需要格式化的文字<br/>
+     * 1.调用该方法前，请先调用<code>setTemplet(@NonNull int[] templet)</code>方法设置好模板或<br/>
+     * 2.直接调用<code>setToTextEdit(@NonNull String text, @NonNull int[] templet)</code>方法
+     *
+     * @param text 需要格式化的内容
+     * @return
+     * @see #setTemplet(int[])
+     * @see #setToTextEdit(String, int[])
+     */
+    public XEditText setToTextEdit(@NonNull String text) {
+        if (TextUtils.isEmpty(text)) {
+            setText("");
+            return this;
+        }
+        if (null == mSplitPosition || mSplitPosition.length <= 0) {
+            setText(text);
+            return this;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        int length = text.length();
+        for (int i = 0; i < length; i++) {
+            for (int position : mSplitPosition) {
+                if (position == i) stringBuilder.append(mSplitChar);
+            }
+            stringBuilder.append(text.charAt(i));
+        }
+        setText(stringBuilder.toString());
+        return this;
+    }
+
+    /**
+     * 指定模板设置格式化的文字，如果已经指定过模板了，可以调用<code>setToTextEdit(@NonNull String text)</code>方法<br/>
+     * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
+     *
+     * @param text    需要格式化的内容
+     * @param templet 格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
+     * @return
+     * @see #setTemplet(int[])
+     * @see #setToTextEdit(String)
+     */
+    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] templet) {
+        setTemplet(templet);
+        return setToTextEdit(text);
+    }
+
+    /**
+     * 指定分隔符和模板设置格式化的文字，如果已经指定过模板了，可以调用<code>setToTextEdit(@NonNull String text)</code>方法<br/>
+     * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
+     *
+     * @param text      需要格式化的内容
+     * @param templet   格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
+     * @param splitChar 分隔符
+     * @return
+     * @see #setSplitChar(char)
+     * @see #setTemplet(int[])
+     * @see #setToTextEdit(String)
+     */
+    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] templet, @NonNull char splitChar) {
+        setSplitChar(splitChar);
+        setTemplet(templet);
+        return setToTextEdit(text);
     }
 
     /**
