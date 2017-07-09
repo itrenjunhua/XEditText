@@ -47,7 +47,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * EditText输入框的最大长度，当设置了模板的时候可以不用设置，因为会根据模板计算出最大的长度
      */
-    private int maxLength;
+    private int mMaxLength;
     /**
      * 内容改变监听对象
      */
@@ -96,6 +96,23 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         // 初始化并设置监听
         mTextWatcher = new MyTextWatcher();
         addTextChangedListener(mTextWatcher);
+    }
+
+    /**
+     * 设置EditText输入内容的最大长度<br/>
+     * <b>注意：</b><br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * <b>1.如果调用了{@code setTemplet(@NonNull int[] templet)}方法设置了模板时可以不用在设置最大长度，因为设置了模板会根据模板计算出最大的长度</b><br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * <b>2.如果调用了{@code setTemplet(@NonNull int[] templet)}方法设置了模板的同时，还要设置最大长度，一定要加上分割符的长度(分隔符也占用EditText的长度)</b><br/>
+     *
+     * @param maxLength 最大长度
+     * @return
+     * @see #setTemplet(int[])
+     */
+    public XEditText setMaxLength(int maxLength) {
+        this.mMaxLength = maxLength;
+        return this;
     }
 
     /**
@@ -165,7 +182,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         }
         if (TextUtils.isEmpty(this.mSplitChar + ""))
             this.mSplitChar = DEFAULT_SPLIT;
-        maxLength = temp;
+        mMaxLength = temp;
         return this;
     }
 
@@ -270,7 +287,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
             mCurrentLen = s.toString().length();
             if (mCurrentLen > 0) {
                 // 设置了最大值，或者设置了模板，并且已经操作了最大值，输入的值无效
-                if (maxLength > 0 && mCurrentLen > maxLength) {
+                if (mMaxLength > 0 && mCurrentLen > mMaxLength) {
                     getText().delete(mCurrentLen - 1, mCurrentLen);
                     return;
                 }
