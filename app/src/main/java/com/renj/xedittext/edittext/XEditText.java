@@ -57,6 +57,24 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      */
     private OnTextChangeListener mOnTextChangeListener;
 
+    /**
+     * 提供默认的几个模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)
+     */
+    public enum MyTemplet {
+        /**
+         * 大陆手机格式(11位 3,4,4)
+         */
+        PHONE,
+        /**
+         * 银行卡号(最多19位 4,4,4,4,3)
+         */
+        BANK_CARD,
+        /**
+         * 省份证号(18位 4,4,4,4,2)
+         */
+        ID_CARD
+    }
+
     public XEditText(Context context) {
         this(context, null);
     }
@@ -78,6 +96,29 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         // 初始化并设置监听
         mTextWatcher = new MyTextWatcher();
         addTextChangedListener(mTextWatcher);
+    }
+
+    /**
+     * 设置已经定义好的模板 {@link MyTemplet}，分割符为 ' '
+     *
+     * @param myTemplete 定义好的模板 {@link MyTemplet}
+     * @return
+     */
+    public XEditText setMyTemplete(@NonNull MyTemplet myTemplete) {
+        if (null == myTemplete) return this;
+        setSplitChar(' ');
+        switch (myTemplete) {
+            case PHONE: // 手机
+                setTemplet(new int[]{3, 4, 4});
+                break;
+            case BANK_CARD: // 银行卡
+                setTemplet(new int[]{4, 4, 4, 4, 3});
+                break;
+            case ID_CARD: // 省份证
+                setTemplet(new int[]{4, 4, 4, 4, 2});
+                break;
+        }
+        return this;
     }
 
     /**
