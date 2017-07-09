@@ -3,6 +3,7 @@ package com.renj.xedittext.edittext;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -14,21 +15,46 @@ import android.util.AttributeSet;
  * <p>
  * 创建时间：2017-07-08   16:02
  * <p>
- * 描述：
+ * 描述：自动格式化的EditText控件<br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * 支持自定义分隔符、设置最大的长度，指定分割的模板等
  * <p>
  * 修订历史：
  * <p>
  * ======================================================================
  */
 public class XEditText extends android.support.v7.widget.AppCompatEditText {
+    /**
+     * 默认分隔符
+     */
     private static final char DEFAULT_SPLIT = ' ';
+    /**
+     * 实际分隔符
+     */
     private char mSplitChar = DEFAULT_SPLIT;
+    /**
+     * 分隔符所在位置的数组
+     */
     private int[] mSplitPosition;
+    /**
+     * 输入之前的长度
+     */
     private int mPreLength;
+    /**
+     * 当前的长度
+     */
     private int mCurrentLen;
+    /**
+     * EditText输入框的最大长度，当设置了模板的时候可以不用设置，因为会根据模板计算出最大的长度
+     */
     private int maxLength;
+    /**
+     * 内容改变监听对象
+     */
     private MyTextWatcher mTextWatcher;
-
+    /**
+     * 自定义的文字改变监听对象
+     */
     private OnTextChangeListener mOnTextChangeListener;
 
     public XEditText(Context context) {
@@ -41,24 +67,49 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
     public XEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mTextWatcher = new MyTextWatcher();
-        addTextChangedListener(mTextWatcher);
-
-        setTemplet(new int[]{4, 4, 4, 4, 3});
-        setSplitChar(' ');
+        init();
     }
 
+    private void init() {
+        // 如果设置 inputType="number" 的话是没法插入空格的，所以强行转为inputType="phone"
+        if (getInputType() == InputType.TYPE_CLASS_NUMBER)
+            setInputType(InputType.TYPE_CLASS_PHONE);
+
+        // 初始化并设置监听
+        mTextWatcher = new MyTextWatcher();
+        addTextChangedListener(mTextWatcher);
+    }
+
+    /**
+     * 设置文字改变监听
+     *
+     * @param onTextChangeListener
+     * @return
+     */
     public XEditText setOnTextChangeListener(OnTextChangeListener onTextChangeListener) {
         this.mOnTextChangeListener = onTextChangeListener;
         return this;
     }
 
+    /**
+     * 设置分割符，默认' '
+     *
+     * @param mSplitChar 需要的分隔符
+     * @return
+     */
     public XEditText setSplitChar(@NonNull char mSplitChar) {
         if (TextUtils.isEmpty(mSplitChar + "")) return this;
         this.mSplitChar = mSplitChar;
         return this;
     }
 
+    /**
+     * 设置EditText分割样式，如 {@code new int[]{3,4,4}} 表示大陆手机号码的样式，<br/>
+     * <b>注意：如果设置了模板，表示已经设置的最大的长度</b>
+     *
+     * @param templet 模板样式 如：{@code new int[]{3,4,4}} 显示：132 1234 5678
+     * @return
+     */
     public XEditText setTemplet(@NonNull int[] templet) {
         if (null == templet) return this;
         int length = templet.length;
@@ -75,8 +126,19 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         return this;
     }
 
-    class MyTextWatcher implements TextWatcher {
+    /**
+     * 获得除去分割符的输入框内容
+     */
+    public String getNonSeparatorText() {
+        if (TextUtils.isEmpty(mSplitChar + ""))
+            return getText().toString();
+        return getText().toString().replaceAll(mSplitChar + "", "");
+    }
 
+    /**
+     * 文字改变监听
+     */
+    class MyTextWatcher implements TextWatcher {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             mPreLength = s.length();
@@ -86,11 +148,13 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            // 当没有分割符位置的时候，表示就是普通的EditText
             if (null == mSplitPosition || mSplitPosition.length == 0) {
                 if (null != mOnTextChangeListener)
                     mOnTextChangeListener.onTextChanged(s, start, before, count);
                 return;
             }
+            // 当没有分割符的时候，表示就是普通的EditText
             if (TextUtils.isEmpty(mSplitChar + "")) {
                 if (null != mOnTextChangeListener)
                     mOnTextChangeListener.onTextChanged(s, start, before, count);
@@ -98,6 +162,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
             }
             mCurrentLen = s.toString().length();
             if (mCurrentLen > 0) {
+                // 设置了最大值，或者设置了模板，并且已经操作了最大值，输入的值无效
                 if (maxLength > 0 && mCurrentLen > maxLength) {
                     getText().delete(mCurrentLen - 1, mCurrentLen);
                     return;
@@ -105,10 +170,12 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
                 for (int i = 0; i < mSplitPosition.length; i++) {
                     if (mCurrentLen == mSplitPosition[i]) {
                         if (mCurrentLen > mPreLength) {
+                            // 正在增加内容
                             removeTextChangedListener(mTextWatcher);
                             mTextWatcher = null;
                             getText().insert(mCurrentLen, mSplitChar + "");
                         } else {
+                            // 正在删除内容
                             removeTextChangedListener(mTextWatcher);
                             mTextWatcher = null;
                             getText().delete(mCurrentLen - 1, mCurrentLen);
@@ -133,6 +200,9 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         }
     }
 
+    /**
+     * 提供给开发者调用的文字改变监听
+     */
     public interface OnTextChangeListener {
         void beforeTextChanged(CharSequence s, int start, int count, int after);
 
