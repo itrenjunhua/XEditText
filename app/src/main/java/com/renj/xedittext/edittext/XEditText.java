@@ -1,12 +1,16 @@
 package com.renj.xedittext.edittext;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
+
+import com.renj.xedittext.R;
 
 /**
  * ======================================================================
@@ -17,7 +21,14 @@ import android.util.AttributeSet;
  * <p>
  * 描述：自动格式化的EditText控件<br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
- * 支持自定义分隔符、设置最大的长度，指定分割的模板等
+ * 支持自定义分隔符、设置最大的长度，指定分割的模板等<br/>
+ * <b>注意：</b><br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * <b>1.如果在布局文件中指定属性，同时设置了使用预定义模板和自定义模板，那么，自定义模板生效</b><br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * <b>2.如果使用代码调用方法同时设置预定义模板和自定义模板，那么，最后设置的生效</b><br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * <b>3.如果同时在布局文件和代码中设置了相同的属性，那么，代码中设置的生效</b><br/>
  * <p>
  * 修订历史：
  * <p>
@@ -85,9 +96,61 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
     public XEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initAttr(attrs);
         init();
     }
 
+    /**
+     * 初始化属性
+     *
+     * @param attrs
+     */
+    private void initAttr(AttributeSet attrs) {
+        TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.XEditText);
+        mMaxLength = typedArray.getInteger(R.styleable.XEditText_maxLength, 0);
+        int myTemplet = typedArray.getInteger(R.styleable.XEditText_my_templet, -1);
+        String splitChar = typedArray.getString(R.styleable.XEditText_splitChar);
+        String customTemplet = typedArray.getString(R.styleable.XEditText_custom_templet);
+        // 校验和设置自定义的属性
+        setCustomTemplet(myTemplet, splitChar, customTemplet);
+        typedArray.recycle();
+    }
+
+    /**
+     * 检验的设置自定的属性
+     */
+    private void setCustomTemplet(int myTemplet, String splitChar, String customTemplet) {
+        // 校检设置的预定义模板
+        if (myTemplet > 0) {
+            if (1 == myTemplet) setMyTemplet(MyTemplet.PHONE);
+            else if (2 == myTemplet) setMyTemplet(MyTemplet.BANK_CARD);
+            else if (3 == myTemplet) setMyTemplet(MyTemplet.ID_CARD);
+        }
+        // 校检分隔符
+        if (TextUtils.isEmpty(splitChar)) mSplitChar = DEFAULT_SPLIT;
+        else mSplitChar = splitChar.charAt(0);
+        // 校验自定义模板格式
+        if (!TextUtils.isEmpty(customTemplet) && customTemplet.contains(",")) {
+            String[] splits = customTemplet.split(",");
+            int length = splits.length;
+            if (length > 1) {
+                int[] arr = new int[length];
+                try {
+                    for (int i = 0; i < length; i++) {
+                        arr[i] = Integer.parseInt(splits[i]);
+                    }
+                    setTemplet(arr);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    Log.e("XEditText", "自定义模板格式错误，请检查布局文件中的 custom_templet属性是否参照格式定义");
+                }
+            }
+        }
+    }
+
+    /**
+     * 初始化其他的相关内容
+     */
     private void init() {
         // 如果设置 inputType="number" 的话是没法插入空格的，所以强行转为inputType="phone"
         if (getInputType() == InputType.TYPE_CLASS_NUMBER)
@@ -116,12 +179,13 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     }
 
     /**
-     * 设置已经定义好的模板 {@link MyTemplet}，分割符为 ' '
+     * 设置已经定义好的模板 {@link MyTemplet}，分割符为 ' '<br/>
+     * <b>如果既设置了定义好的模板，又设置了自动以的模板，那么以最后一个生效</b>
      *
      * @param myTemplete 定义好的模板 {@link MyTemplet}
      * @return
      */
-    public XEditText setMyTemplete(@NonNull MyTemplet myTemplete) {
+    public XEditText setMyTemplet(@NonNull MyTemplet myTemplete) {
         if (null == myTemplete) return this;
         setSplitChar(' ');
         switch (myTemplete) {
