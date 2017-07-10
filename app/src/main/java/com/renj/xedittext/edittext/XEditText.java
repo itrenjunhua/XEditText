@@ -2,6 +2,7 @@ package com.renj.xedittext.edittext;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.InputType;
@@ -9,6 +10,8 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 
 import com.renj.xedittext.R;
 
@@ -22,6 +25,8 @@ import com.renj.xedittext.R;
  * 描述：自动格式化的EditText控件<br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  * 支持自定义分隔符、设置最大的长度，指定分割的模板等<br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * 可以使用方法 <code>setMyTemplet(@NonNull {@link MyTemplet} myTemplete)</code> 指定预定义模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)<br/>
  * <b>注意：</b><br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  * <b>1.如果在布局文件中指定属性，同时设置了使用预定义模板和自定义模板，那么，自定义模板生效</b><br/>
@@ -35,6 +40,23 @@ import com.renj.xedittext.R;
  * ======================================================================
  */
 public class XEditText extends android.support.v7.widget.AppCompatEditText {
+    /**
+     * 总是显示右边删除图片(一直显示)
+     */
+    public static final int ALWAYS_SHOW = 0x0000;
+    /**
+     * 总是隐藏右边图片(不显示)
+     */
+    public static final int ALWAYS_HIND = 0x0001;
+    /**
+     * 有内容时显示(不管是否有焦点)
+     */
+    public static final int HAS_CONTENT_SHOW = 0x0002;
+    /**
+     * 有内容并且有焦点时显示
+     */
+    public static final int HAS_CONTENT_FOUCUS_SHOW = 0x0003;
+
     /**
      * 默认分隔符，{@code ' '} 表示
      */
@@ -67,6 +89,19 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * 自定义的文字改变监听对象
      */
     private OnTextChangeListener mOnTextChangeListener;
+    /**
+     * 自定义焦点改变监听对象
+     */
+    private OnMyFocusChangeListener mOnMyFocusChangeListener;
+    /**
+     * 指定右边删除图片显示的时间，默认有内容并且有焦点时显示
+     */
+    private int mDelIconTime = HAS_CONTENT_FOUCUS_SHOW;
+    /**
+     * 右边删除按钮图片对象
+     */
+    private Drawable mClearDrawable;
+    private Drawable[] mCompoundDrawables;
 
     /**
      * 提供默认的几个模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)
@@ -111,21 +146,34 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         int myTemplet = typedArray.getInteger(R.styleable.XEditText_my_templet, -1);
         String splitChar = typedArray.getString(R.styleable.XEditText_splitChar);
         String customTemplet = typedArray.getString(R.styleable.XEditText_custom_templet);
+        mClearDrawable = typedArray.getDrawable(R.styleable.XEditText_del_icon);
+        mDelIconTime = typedArray.getInt(R.styleable.XEditText_del_show_time, HAS_CONTENT_FOUCUS_SHOW);
         // 校验和设置自定义的属性
-        setCustomTemplet(myTemplet, splitChar, customTemplet);
+        setCustomAttrs(myTemplet, splitChar, customTemplet);
         typedArray.recycle();
     }
 
     /**
      * 检验的设置自定的属性
      */
-    private void setCustomTemplet(int myTemplet, String splitChar, String customTemplet) {
+    private void setCustomAttrs(int myTemplet, String splitChar, String customTemplet) {
         // 校检设置的预定义模板
         if (myTemplet > 0) {
             if (1 == myTemplet) setMyTemplet(MyTemplet.PHONE);
             else if (2 == myTemplet) setMyTemplet(MyTemplet.BANK_CARD);
             else if (3 == myTemplet) setMyTemplet(MyTemplet.ID_CARD);
         }
+        // 右边清除图片
+        if (null == mClearDrawable) { // 没有定义就使用默认的图片
+            // mClearDrawable = getContext().getResources().getDrawable(R.mipmap.icon_delete,null);
+            mClearDrawable = getContext().getResources().getDrawable(R.mipmap.icon_delete);
+        }
+        mClearDrawable.setBounds(0, 0, mClearDrawable.getIntrinsicWidth(), mClearDrawable.getIntrinsicHeight());
+        mCompoundDrawables = getCompoundDrawables();
+        mClearDrawable.setVisible(false, false); // 最开始默认隐藏
+        setCompoundDrawables(mCompoundDrawables[0], mCompoundDrawables[1],
+                mClearDrawable.isVisible() ? mClearDrawable : null,
+                mCompoundDrawables[3]);
         // 校检分隔符
         if (TextUtils.isEmpty(splitChar)) mSplitChar = DEFAULT_SPLIT;
         else mSplitChar = splitChar.charAt(0);
@@ -159,6 +207,60 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         // 初始化并设置监听
         mTextWatcher = new MyTextWatcher();
         addTextChangedListener(mTextWatcher);
+
+        // 焦点改变监听
+        focusChangeListener();
+    }
+
+    /**
+     * 焦点改变监听
+     */
+    private void focusChangeListener() {
+        setOnFocusChangeListener(new OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                changeDelShowStatu(getText(), hasFocus);
+                if (null != mOnMyFocusChangeListener)
+                    mOnMyFocusChangeListener.onFocusChange(v, hasFocus);
+            }
+        });
+    }
+
+    /**
+     * 设置右边删除图片
+     *
+     * @param delDrawable 右边的图片
+     * @return
+     */
+    public XEditText setDelDrawable(Drawable delDrawable) {
+        this.mClearDrawable = delDrawable;
+        return this;
+    }
+
+    /**
+     * 设置右边删除图片资源id
+     *
+     * @param delDrawableId 右边的图片资源id
+     * @return
+     */
+    public XEditText setDelDrawable(int delDrawableId) {
+        this.mClearDrawable = getResources().getDrawable(delDrawableId);
+        return this;
+    }
+
+    /**
+     * 设置右边删除图片显示的时间，默认有内容并且有焦点时显示
+     *
+     * @param delIconTime 设置右边删除图片显示的时间，取值<br/>
+     *                    XEditText.ALWAYS_SHOW：总是显示(一直显示)<br/>
+     *                    XEditText.ALWAYS_HIND：总是隐藏(从不显示)<br/>
+     *                    XEditText.HAS_CONTENT_SHOW：有内容时显示(不管焦点)<br/>
+     *                    XEditText.HAS_CONTENT_FOUCUS_SHOW：有内容并且有焦点时显示<br/>
+     * @return
+     */
+    public XEditText setDelIconShowTime(int delIconTime) {
+        this.mDelIconTime = delIconTime;
+        return this;
     }
 
     /**
@@ -195,21 +297,10 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
             case BANK_CARD: // 银行卡
                 setTemplet(new int[]{4, 4, 4, 4, 3});
                 break;
-            case ID_CARD: // 省份证
+            case ID_CARD: // 身份证
                 setTemplet(new int[]{4, 4, 4, 4, 2});
                 break;
         }
-        return this;
-    }
-
-    /**
-     * 设置文字改变监听
-     *
-     * @param onTextChangeListener
-     * @return
-     */
-    public XEditText setOnTextChangeListener(OnTextChangeListener onTextChangeListener) {
-        this.mOnTextChangeListener = onTextChangeListener;
         return this;
     }
 
@@ -315,12 +406,70 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     }
 
     /**
+     * 设置文字改变监听
+     *
+     * @param onTextChangeListener
+     * @return
+     */
+    public XEditText setOnTextChangeListener(OnTextChangeListener onTextChangeListener) {
+        this.mOnTextChangeListener = onTextChangeListener;
+        return this;
+    }
+
+    /**
+     * 设置焦点改变监听
+     *
+     * @param onMyFocusChangeListener
+     * @return
+     */
+    public XEditText setOnMyFocusChangeListener(OnMyFocusChangeListener onMyFocusChangeListener) {
+        this.mOnMyFocusChangeListener = onMyFocusChangeListener;
+        return this;
+    }
+
+    /**
      * 获得除去分割符的输入框内容
      */
     public String getNonSeparatorText() {
         if (TextUtils.isEmpty(mSplitChar + ""))
             return getText().toString();
         return getText().toString().replaceAll(mSplitChar + "", "");
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int eventX = (int) event.getX();
+        if (mClearDrawable.isVisible() && MotionEvent.ACTION_UP == event.getAction()
+                && eventX > getWidth() - getPaddingRight() - mClearDrawable.getIntrinsicHeight()) {
+            setText("");
+            return true;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    /**
+     * 根据是否有内容和焦点以及设置的显示状态改变右边图片的显示状态
+     *
+     * @param text
+     * @param hasFocus
+     */
+    private void changeDelShowStatu(Editable text, boolean hasFocus) {
+        if (ALWAYS_SHOW == mDelIconTime) { // 总是显示
+            mClearDrawable.setVisible(true, false);
+        } else if (HAS_CONTENT_SHOW == mDelIconTime) { // 有内容就显示
+            if (null != text && !TextUtils.isEmpty(text.toString()))
+                mClearDrawable.setVisible(true, false);
+            else mClearDrawable.setVisible(false, false);
+        } else if (HAS_CONTENT_FOUCUS_SHOW == mDelIconTime) { // 有内容并且有焦点时显示
+            if (null != text && !TextUtils.isEmpty(text.toString()) && hasFocus)
+                mClearDrawable.setVisible(true, false);
+            else mClearDrawable.setVisible(false, false);
+        } else { // 总是隐藏
+            mClearDrawable.setVisible(false, false);
+        }
+        setCompoundDrawables(mCompoundDrawables[0], mCompoundDrawables[1],
+                mClearDrawable.isVisible() ? mClearDrawable : null,
+                mCompoundDrawables[3]);
     }
 
     /**
@@ -383,6 +532,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
         @Override
         public void afterTextChanged(Editable s) {
+            changeDelShowStatu(s, isFocused());
             if (null != mOnTextChangeListener)
                 mOnTextChangeListener.afterTextChanged(s);
         }
@@ -397,5 +547,12 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         void onTextChanged(CharSequence s, int start, int before, int count);
 
         void afterTextChanged(Editable s);
+    }
+
+    /**
+     * 提供给开发者调用的焦点改变监听
+     */
+    public interface OnMyFocusChangeListener {
+        void onFocusChange(View view, boolean hasFocus);
     }
 }
