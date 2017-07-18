@@ -216,7 +216,7 @@ public class EditTextFilter {
          * @param reg
          */
         public void removeReg(@NonNull String reg) {
-            this.regMsgs.remove(regMsgs);
+            this.regMsgs.remove(reg);
         }
 
         /**
