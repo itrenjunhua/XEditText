@@ -89,7 +89,16 @@ public class EditTextFilter {
     @NonNull
     private InputFilter createInputFilter() {
         return new InputFilter() {
-            // 返回null时表示不管，让系统处理，返回 "" 表示过滤掉了
+            /**
+             *
+             * @param source 输入时，source为新输入的字符；删除时，source没有内容
+             * @param start 输入时，一直为0；删除时，一直为0
+             * @param end 输入时，表示输入字符的个数；删除时，一直为0
+             * @param dest 输入时，dest为输入框中原来的字符；删除时，dest为删除前输入框中的内容
+             * @param dstart 输入时，原来输入框中字符的长度；删除时，输入框中删除后字符的长度
+             * @param dend 输入时，原来输入框中字符的长度；删除时，输入框中删除前字符的长度
+             * @return 返回null时表示不管，让系统处理，返回 "" 表示过滤掉了
+             */
             @Override
             public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
                 int length = source.length();
@@ -119,7 +128,7 @@ public class EditTextFilter {
                             return null;
                         } else {
                             String str = mRegMsgs.get(string);
-                            if (!TextUtils.isEmpty(str))
+                            if (!TextUtils.isEmpty(str) && 0 != end)
                                 Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
                             return "";
                         }
