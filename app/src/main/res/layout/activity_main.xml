@@ -1,13 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_margin="12dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:gravity="center_horizontal"
+        android:text="使用代码进行控制"
+        android:textColor="#EE3305"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="#DDDDDD" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bt_phone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="手机号"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/bt_idcard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="18位身份证号"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/bt_bankcard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="19位银行卡号"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="设置内容(使用setToTextEdit方法设置内容)："
+        android:textSize="12sp" />
 
     <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text1"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:gravity="center_vertical"
-        android:hint="测试"
-        android:padding="16dp" />
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:hint="使用setToTextEdit方法设置内容"
+        android:inputType="phone"
+        android:textColor="#333666"
+        android:textColorHint="#bbbbbb"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="手动输入内容："
+        android:textSize="12sp" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入内容"
+        android:inputType="phone"
+        android:textColor="#333666"
+        android:textColorHint="#bbbbbb"
+        android:textSize="16sp" />
 
 </LinearLayout>
