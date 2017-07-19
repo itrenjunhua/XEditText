@@ -311,7 +311,9 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 设置分割符，默认' '
      *
-     * @param splitChar 需要的分隔符
+     * @param splitChar 需要的分隔符<br/>
+     *                  <b>注意：设置EditText的输入类型的时候(设置 {@code inputType} 或 {@code digits} 属性)需要能输入分割符,
+     *                  否则分割符不能输入到EditText中，那么不会对内容进行分割</b>
      * @return
      */
     public XEditText setSplitChar(@NonNull char splitChar) {
@@ -451,7 +453,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 获得除去分割符的输入框内容
      */
-    public String getNonSeparatorText() {
+    public String getNoSplitCharText() {
         if (TextUtils.isEmpty(mSplitChar + ""))
             return getText().toString();
         return getText().toString().replaceAll(mSplitChar + "", "");
@@ -506,7 +508,6 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            Log.i("MyTextWatcher", "--------------  " + mSplitChar);
             // 当没有分割符位置的时候，表示就是普通的EditText
             if (null == mSplitPosition || mSplitPosition.length == 0) {
                 if (null != mOnTextChangeListener)
