@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:renj="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="12dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:gravity="center_horizontal"
+        android:text="使用代码进行控制"
+        android:textColor="#EE3305"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="#DDDDDD" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bt_phone"
+            style="@style/style_top_bt"
+            android:text="手机号" />
+
+        <Button
+            android:id="@+id/bt_idcard"
+            style="@style/style_top_bt"
+            android:text="18位身份证号" />
+
+        <Button
+            android:id="@+id/bt_bankcard"
+            style="@style/style_top_bt"
+            android:text="19位银行卡号" />
+
+    </LinearLayout>
+
+    <TextView
+        style="@style/style_text_hint"
+        android:text="设置内容(使用setToTextEdit方法设置内容)：" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text1"
+        style="@style/style_xedittext"
+        android:focusable="false"
+        android:hint="使用setToTextEdit方法设置内容" />
+
+    <TextView
+        style="@style/style_text_hint"
+        android:text="手动输入内容：" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text2"
+        style="@style/style_xedittext"
+        android:hint="输入内容" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_horizontal"
+        android:padding="4dp"
+        android:text="使用布局文件中的属性进行控制"
+        android:textColor="#EE3305"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="#DDDDDD" />
+
+    <TextView
+        style="@style/style_text_hint"
+        android:text="在布局文件中使用属性控制(自定义控制)：" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text3"
+        style="@style/style_xedittext"
+        android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
+        renj:custom_templet="1,2,3,4"
+        renj:del_show_time="always_show"
+        renj:splitChar="+" />
+
+    <TextView
+        style="@style/style_text_hint"
+        android:text="在布局文件中使用属性控制(预定义模板，改变分隔符)：" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text4"
+        style="@style/style_xedittext"
+        android:hint="使用预定义的手机号模板，改变分隔符为-"
+        renj:my_templet="phone"
+        renj:splitChar="-" />
+
+    <Button
+        android:id="@+id/bt_getValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="获取最后一个输入框去除分隔符之后的值"
+        android:textSize="14sp" />
+
+</LinearLayout>

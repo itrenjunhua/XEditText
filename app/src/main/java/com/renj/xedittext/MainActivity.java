@@ -2,25 +2,29 @@ package com.renj.xedittext;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.renj.xedittext.edittext.XEditText;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    private Button btPhone, btIdCard, btBankCard;
-    private XEditText xEditText1, xEditText2;
+    private Button btPhone, btIdCard, btBankCard, btGetValue;
+    private XEditText xEditText1, xEditText2, xEditText4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_xedittext);
 
         btPhone = (Button) findViewById(R.id.bt_phone);
         btIdCard = (Button) findViewById(R.id.bt_idcard);
         btBankCard = (Button) findViewById(R.id.bt_bankcard);
+        btGetValue = (Button) findViewById(R.id.bt_getValue);
         xEditText1 = (XEditText) findViewById(R.id.xedit_text1);
         xEditText2 = (XEditText) findViewById(R.id.xedit_text2);
+        xEditText4 = (XEditText) findViewById(R.id.xedit_text4);
 
         // 设置右边删除按钮显示的时间为有内容就显示(默认是有内容并且有焦点时显示，xEditText1没设置，使用默认)
         xEditText2.setDelIconShowTime(XEditText.HAS_CONTENT_SHOW);
@@ -28,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btPhone.setOnClickListener(this);
         btIdCard.setOnClickListener(this);
         btBankCard.setOnClickListener(this);
+        btGetValue.setOnClickListener(this);
     }
 
     @Override
@@ -58,8 +63,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 xEditText2.setTemplet(new int[]{4, 4, 4, 4, 3});
 
                 // 直接将身份证号码设置到输入框1，指定模板
-                xEditText1.setToTextEdit("1111111111111111111", new int[]{4, 4, 4, 4, 3},' ');
+                xEditText1.setToTextEdit("1111111111111111111", new int[]{4, 4, 4, 4, 3}, ' ');
                 xEditText2.setText("");
+                break;
+            case R.id.bt_getValue: // 获取最后一个输入框去除分隔符之后的值
+                String splitCharText = xEditText4.getNoSplitCharText();
+                if (TextUtils.isEmpty(splitCharText))
+                    Toast.makeText(MainActivity.this, "没有输入内容", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(MainActivity.this, splitCharText, Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
