@@ -59,7 +59,7 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 xEditText2.setMyTemplet(XEditText.MyTemplet.PHONE);
 
                 // 直接将手机号码设置到输入框1
-                xEditText1.setToTextEdit("13211111111");
+                xEditText1.setToTextEdit("13212345678");
                 xEditText2.setHint("手机号模板");
                 xEditText2.setText("");
                 break;
@@ -69,7 +69,7 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 xEditText2.setMyTemplet(XEditText.MyTemplet.ID_CARD);
 
                 // 直接将身份证号码设置到输入框1，并指定分隔符
-                xEditText1.setToTextEdit("111111111111111111", '-');
+                xEditText1.setToTextEdit("123456789012345678", '-');
                 xEditText2.setHint("身份证号码模板");
                 xEditText2.setText("");
                 break;
@@ -78,7 +78,7 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 xEditText2.setTemplet(new int[]{4, 4, 4, 4, 3});
 
                 // 直接将银行卡号设置到输入框1，指定模板
-                xEditText1.setToTextEdit("1111111111111111111", new int[]{4, 4, 4, 4, 3}, ' ');
+                xEditText1.setToTextEdit("1234567890123456789", new int[]{4, 4, 4, 4, 3}, ' ');
                 xEditText2.setHint("银行卡号模板");
                 xEditText2.setText("");
                 break;

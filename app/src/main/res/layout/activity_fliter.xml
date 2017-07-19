@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="12dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="没有按要求输入Toast提示："
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edittext1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="填写身份证号码，输入数字和Xx"
+        android:maxLines="1"
+        android:textColor="#333666"
+        android:textColorHint="#bbbbbb"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/edittext2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="只能输入中文并且最大长度为4个字符"
+        android:maxLines="1"
+        android:textColor="#333666"
+        android:textColorHint="#bbbbbb"
+        android:textSize="14sp" />
+
+    <com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="使用XEditText控件，输入手机号码并且过滤"
+        android:inputType="phone"
+        android:maxLines="1"
+        android:textColor="#333666"
+        android:textColorHint="#bbbbbb"
+        android:textSize="14sp" />
+
+</LinearLayout>
