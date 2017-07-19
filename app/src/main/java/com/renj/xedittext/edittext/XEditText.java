@@ -34,6 +34,9 @@ import com.renj.xedittext.R;
  * <b>2.如果使用代码调用方法同时设置预定义模板和自定义模板，那么，最后设置的生效</b><br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  * <b>3.如果同时在布局文件和代码中设置了相同的属性，那么，代码中设置的生效</b><br/>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ * <b>4.在设置EditText的输入类型的时候(设置 {@code inputType} 或 {@code digits} 属性)需要能输入分割符，
+ * 否则分割符不能输入到EditText中，那么不会对内容进行分割</b><br/>
  * <p>
  * 修订历史：
  * <p>
@@ -175,8 +178,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
                 mClearDrawable.isVisible() ? mClearDrawable : null,
                 mCompoundDrawables[3]);
         // 校检分隔符
-        if (TextUtils.isEmpty(splitChar)) mSplitChar = DEFAULT_SPLIT;
-        else mSplitChar = splitChar.charAt(0);
+        if (!TextUtils.isEmpty(splitChar)) mSplitChar = splitChar.charAt(0);
         // 校验自定义模板格式
         if (!TextUtils.isEmpty(customTemplet) && customTemplet.contains(",")) {
             String[] splits = customTemplet.split(",");
@@ -276,6 +278,8 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * @see #setTemplet(int[])
      */
     public XEditText setMaxLength(int maxLength) {
+        if (maxLength <= 0)
+            throw new IllegalArgumentException("maxLength 的值必须大于 0");
         this.mMaxLength = maxLength;
         return this;
     }
@@ -289,7 +293,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      */
     public XEditText setMyTemplet(@NonNull MyTemplet myTemplete) {
         if (null == myTemplete) return this;
-        setSplitChar(' ');
+        setSplitChar(mSplitChar);
         switch (myTemplete) {
             case PHONE: // 手机
                 setTemplet(new int[]{3, 4, 4});
@@ -311,7 +315,6 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * @return
      */
     public XEditText setSplitChar(@NonNull char splitChar) {
-        if (TextUtils.isEmpty(mSplitChar + "")) return this;
         this.mSplitChar = splitChar;
         return this;
     }
@@ -335,8 +338,9 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
                 temp += 1;
             }
         }
-        if (TextUtils.isEmpty(this.mSplitChar + ""))
+        if (this.mSplitChar == ' ') {
             this.mSplitChar = DEFAULT_SPLIT;
+        }
         mMaxLength = temp;
         return this;
     }
@@ -364,7 +368,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         int length = text.length();
         for (int i = 0; i < length; i++) {
             for (int position : mSplitPosition) {
-                if (position == i) stringBuilder.append(mSplitChar);
+                if (position == stringBuilder.toString().length()) stringBuilder.append(mSplitChar);
             }
             stringBuilder.append(text.charAt(i));
         }
@@ -402,6 +406,23 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     public XEditText setToTextEdit(@NonNull String text, @NonNull int[] templet, @NonNull char splitChar) {
         setSplitChar(splitChar);
         setTemplet(templet);
+        return setToTextEdit(text);
+    }
+
+    /**
+     * 指定分隔符设置格式化的文字<br/>
+     * 调用该方法前，请先调用<code>setTemplet(@NonNull int[] templet)</code>方法设置好模板<br/>
+     * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
+     *
+     * @param text      需要格式化的内容
+     * @param splitChar 分隔符
+     * @return
+     * @see #setSplitChar(char)
+     * @see #setTemplet(int[])
+     * @see #setToTextEdit(String)
+     */
+    public XEditText setToTextEdit(@NonNull String text, @NonNull char splitChar) {
+        setSplitChar(splitChar);
         return setToTextEdit(text);
     }
 
@@ -485,6 +506,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Log.i("MyTextWatcher", "--------------  " + mSplitChar);
             // 当没有分割符位置的时候，表示就是普通的EditText
             if (null == mSplitPosition || mSplitPosition.length == 0) {
                 if (null != mOnTextChangeListener)
@@ -499,7 +521,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
             }
             mCurrentLen = s.toString().length();
             if (mCurrentLen > 0) {
-                // 设置了最大值，或者设置了模板，并且已经操作了最大值，输入的值无效
+                // 设置了最大值，或者设置了模板，并且已经操过了最大值，输入的值无效
                 if (mMaxLength > 0 && mCurrentLen > mMaxLength) {
                     getText().delete(mCurrentLen - 1, mCurrentLen);
                     return;
