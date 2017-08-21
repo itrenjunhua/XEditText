@@ -10,7 +10,8 @@
 
 ## 基本使用
 在xml文件中定义控件：
-<pre>
+
+``` xml
 <com.renj.xedittext.edittext.XEditText
         android:id="@+id/xedit_text3"
         style="@style/style_xedittext"
@@ -18,4 +19,5 @@
         renj:custom_templet="1,2,3,4"
         renj:del_show_time="always_show"
         renj:splitChar="+" />
-</pre>        
+```
+    
