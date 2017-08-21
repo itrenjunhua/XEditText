@@ -10,11 +10,12 @@
 
 ## 基本使用
 在xml文件中定义控件：
-
-> <com.renj.xedittext.edittext.XEditText
->         android:id="@+id/xedit_text3"
->         style="@style/style_xedittext"
->         android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
->         renj:custom_templet="1,2,3,4"
->         renj:del_show_time="always_show"
->         renj:splitChar="+" />
+<pre>
+<com.renj.xedittext.edittext.XEditText
+        android:id="@+id/xedit_text3"
+        style="@style/style_xedittext"
+        android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
+        renj:custom_templet="1,2,3,4"
+        renj:del_show_time="always_show"
+        renj:splitChar="+" />
+</pre>        
