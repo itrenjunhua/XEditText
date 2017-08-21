@@ -9,7 +9,8 @@
 ![](https://github.com/itrenjunhua/XEditText/raw/master/image3.gif)
 
 ## 基本使用
-
+在xml文件中定义控件：
+<pre>
 <com.renj.xedittext.edittext.XEditText
         android:id="@+id/xedit_text3"
         style="@style/style_xedittext"
