@@ -84,7 +84,7 @@
         android:id="@+id/xedit_text3"
         style="@style/style_xedittext"
         android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
-        renj:custom_templet="1,2,3,4"
+        renj:custom_template="1,2,3,4"
         renj:del_show_time="always_show"
         renj:splitChar="+" />
 
@@ -96,7 +96,7 @@
         android:id="@+id/xedit_text4"
         style="@style/style_xedittext"
         android:hint="使用预定义的手机号模板，改变分隔符为-"
-        renj:my_templet="phone"
+        renj:x_template="phone"
         renj:splitChar="-" />
 
     <Button

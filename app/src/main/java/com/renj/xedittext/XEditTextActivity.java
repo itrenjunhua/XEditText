@@ -40,7 +40,7 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
         xEditText4 = (XEditText) findViewById(R.id.xedit_text4);
 
         // 设置右边删除按钮显示的时间为有内容就显示(默认是有内容并且有焦点时显示，xEditText1没设置，使用默认)
-        xEditText2.setDelIconShowTime(XEditText.HAS_CONTENT_SHOW);
+        xEditText2.setDelIconShowTime(XEditText.DelIconShowTime.HAS_CONTENT_SHOW);
 
         btPhone.setOnClickListener(this);
         btIdCard.setOnClickListener(this);
@@ -55,8 +55,8 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 // 代码设置为手机号码格式，使用预定义模板形式
                 xEditText1.setSplitChar(' ');
                 //xEditText2.setSplitChar(' ');//不设置分割符，使用默认分隔符
-                xEditText1.setMyTemplet(XEditText.MyTemplet.PHONE);
-                xEditText2.setMyTemplet(XEditText.MyTemplet.PHONE);
+                xEditText1.setXTemplate(XEditText.XTemplate.PHONE);
+                xEditText2.setXTemplate(XEditText.XTemplate.PHONE);
 
                 // 直接将手机号码设置到输入框1
                 xEditText1.setToTextEdit("13212345678");
@@ -65,8 +65,8 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 break;
             case R.id.bt_idcard:
                 // 代码设置为身份证号码格式，使用模板的形式设置
-                xEditText1.setTemplet(new int[]{4, 4, 4, 4, 2});
-                xEditText2.setMyTemplet(XEditText.MyTemplet.ID_CARD);
+                xEditText1.setTemplate(new int[]{4, 4, 4, 4, 2});
+                xEditText2.setXTemplate(XEditText.XTemplate.ID_CARD);
 
                 // 直接将身份证号码设置到输入框1，并指定分隔符
                 xEditText1.setToTextEdit("123456789012345678", '-');
@@ -75,7 +75,7 @@ public class XEditTextActivity extends AppCompatActivity implements View.OnClick
                 break;
             case R.id.bt_bankcard:
                 // 代码设置为银行卡号格式，使用模板的形式设置
-                xEditText2.setTemplet(new int[]{4, 4, 4, 4, 3});
+                xEditText2.setTemplate(new int[]{4, 4, 4, 4, 3});
 
                 // 直接将银行卡号设置到输入框1，指定模板
                 xEditText1.setToTextEdit("1234567890123456789", new int[]{4, 4, 4, 4, 3}, ' ');

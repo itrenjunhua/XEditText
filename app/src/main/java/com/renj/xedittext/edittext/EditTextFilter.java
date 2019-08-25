@@ -146,7 +146,7 @@ public class EditTextFilter {
         private String maxMsg = null;
         private boolean isFilterEnter = false;
         private boolean isFilterDel = false;
-        private Map<String, String> regMsgs = new HashMap<>();
+        private Map<String, String> regMsgMap = new HashMap<>();
 
         /**
          * 设置最大长度
@@ -193,7 +193,7 @@ public class EditTextFilter {
          * @return
          */
         public Builder putReg(@NonNull String reg, String regMsg) {
-            regMsgs.put(reg, regMsg);
+            regMsgMap.put(reg, regMsg);
             return this;
         }
 
@@ -206,7 +206,7 @@ public class EditTextFilter {
          * @return
          */
         public Builder regMsgs(@NonNull Map<String, String> regMsgs) {
-            this.regMsgs.putAll(regMsgs);
+            this.regMsgMap.putAll(regMsgs);
             return this;
         }
 
@@ -216,14 +216,14 @@ public class EditTextFilter {
          * @param reg
          */
         public void removeReg(@NonNull String reg) {
-            this.regMsgs.remove(reg);
+            this.regMsgMap.remove(reg);
         }
 
         /**
          * 清除所有的正则表达式过滤
          */
         public void clearReg() {
-            this.regMsgs.clear();
+            this.regMsgMap.clear();
         }
 
         /**
@@ -232,7 +232,7 @@ public class EditTextFilter {
          * @return {@link EditTextFilter} 对象
          */
         public EditTextFilter build() {
-            return new EditTextFilter(maxLength, maxMsg, isFilterEnter, isFilterDel, regMsgs);
+            return new EditTextFilter(maxLength, maxMsg, isFilterEnter, isFilterDel, regMsgMap);
         }
     }
 }

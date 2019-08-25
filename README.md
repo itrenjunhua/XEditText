@@ -8,7 +8,7 @@
 ``` xml
 <declare-styleable name="XEditText">
         <!--使用已经定义好的模板，如果既设置了原来的模板，又设置了自动以模板，以自定模板为主-->
-        <attr name="my_templet" format="enum">
+        <attr name="x_template" format="enum">
             <enum name="phone" value="1" />
             <enum name="bank_card" value="2" />
             <enum name="id_card" value="3" />
@@ -22,7 +22,7 @@
         <attr name="splitChar" format="string" />
         <!-- 定义模板，格式固定(否则无效)："第一部分长度(正整数),第二部分长度(正整数),...,第n部分长度(正整数),..."。
          比如："3,4,4" 那么EditText显示的为 三个字符 + 分隔符 + 四个字符 + 分割符 + 四个字符-->
-        <attr name="custom_templet" format="string" />
+        <attr name="custom_template" format="string" />
         <!--指定右边清除图片-->
         <attr name="del_icon" format="reference" />
         <!--右边图片显示的时间-->
@@ -47,7 +47,7 @@
         android:id="@+id/xedit_text3"
         style="@style/style_xedittext"
         android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
-        renj:custom_templet="1,2,3,4"
+        renj:custom_template="1,2,3,4"
         renj:del_show_time="always_show"
         renj:splitChar="+" />
 ```
@@ -78,7 +78,7 @@ String splitCharText = xEditText1.getNoSplitCharText();
         android:id="@+id/xedit_text4"
         style="@style/style_xedittext"
         android:hint="使用预定义的手机号模板，改变分隔符为-"
-        renj:my_templet="phone"
+        renj:x_template="phone"
         renj:splitChar="-" />
 
 
@@ -86,7 +86,7 @@ String splitCharText = xEditText1.getNoSplitCharText();
         android:id="@+id/xedit_text3"
         style="@style/style_xedittext"
         android:hint="分隔符+，模板1,2,3,4，一直显示清除图片按钮"
-        renj:custom_templet="1,2,3,4"
+        renj:custom_template="1,2,3,4"
         renj:del_show_time="always_show"
         renj:splitChar="+" />
 ```

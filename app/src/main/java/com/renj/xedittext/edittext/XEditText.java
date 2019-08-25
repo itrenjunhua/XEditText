@@ -3,6 +3,7 @@ package com.renj.xedittext.edittext;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.InputType;
@@ -13,7 +14,11 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.renj.xedittext.BuildConfig;
 import com.renj.xedittext.R;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * ======================================================================
@@ -26,7 +31,7 @@ import com.renj.xedittext.R;
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  * 支持自定义分隔符、设置最大的长度，指定分割的模板等<br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
- * 可以使用方法 <code>setMyTemplet(@NonNull {@link MyTemplet} myTemplete)</code> 指定预定义模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)<br/>
+ * 可以使用方法 <code>setXTemplate(@NonNull {@link XTemplate} xTemplate)</code> 指定预定义模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)<br/>
  * <b>注意：</b><br/>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  * <b>1.如果在布局文件中指定属性，同时设置了使用预定义模板和自定义模板，那么，自定义模板生效</b><br/>
@@ -43,22 +48,36 @@ import com.renj.xedittext.R;
  * ======================================================================
  */
 public class XEditText extends android.support.v7.widget.AppCompatEditText {
-    /**
-     * 总是显示右边删除图片(一直显示)
-     */
-    public static final int ALWAYS_SHOW = 0x0000;
-    /**
-     * 总是隐藏右边图片(不显示)
-     */
-    public static final int ALWAYS_HIND = 0x0001;
-    /**
-     * 有内容时显示(不管是否有焦点)
-     */
-    public static final int HAS_CONTENT_SHOW = 0x0002;
-    /**
-     * 有内容并且有焦点时显示
-     */
-    public static final int HAS_CONTENT_FOUCUS_SHOW = 0x0003;
+    private static final int DRAWABLE_LEFT = 0;
+    private static final int DRAWABLE_TOP = 1;
+    private static final int DRAWABLE_RIGHT = 2;
+    private static final int DRAWABLE_BOTTOM = 3;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            DelIconShowTime.ALWAYS_SHOW,
+            DelIconShowTime.ALWAYS_HIND,
+            DelIconShowTime.HAS_CONTENT_SHOW,
+            DelIconShowTime.HAS_CONTENT_FOCUS_SHOW,
+    })
+    public @interface DelIconShowTime {
+        /**
+         * 总是显示右边删除图片(一直显示)
+         */
+        int ALWAYS_SHOW = 0x0000;
+        /**
+         * 总是隐藏右边图片(不显示)
+         */
+        int ALWAYS_HIND = 0x0001;
+        /**
+         * 有内容时显示(不管是否有焦点)
+         */
+        int HAS_CONTENT_SHOW = 0x0002;
+        /**
+         * 有内容并且有焦点时显示
+         */
+        int HAS_CONTENT_FOCUS_SHOW = 0x0003;
+    }
 
     /**
      * 默认分隔符，{@code ' '} 表示
@@ -99,7 +118,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 指定右边删除图片显示的时间，默认有内容并且有焦点时显示
      */
-    private int mDelIconTime = HAS_CONTENT_FOUCUS_SHOW;
+    private int mDelIconTime = DelIconShowTime.HAS_CONTENT_FOCUS_SHOW;
     /**
      * 右边删除按钮图片对象
      */
@@ -109,7 +128,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 提供默认的几个模板(包括中国大陆手机、最多19位的银行卡、18位身份证号)
      */
-    public enum MyTemplet {
+    public enum XTemplate {
         /**
          * 大陆手机格式(11位 3,4,4)
          */
@@ -146,25 +165,25 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     private void initAttr(AttributeSet attrs) {
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.XEditText);
         mMaxLength = typedArray.getInteger(R.styleable.XEditText_maxLength, 0);
-        int myTemplet = typedArray.getInteger(R.styleable.XEditText_my_templet, -1);
+        int xTemplate = typedArray.getInteger(R.styleable.XEditText_x_template, -1);
         String splitChar = typedArray.getString(R.styleable.XEditText_splitChar);
-        String customTemplet = typedArray.getString(R.styleable.XEditText_custom_templet);
+        String customTemplate = typedArray.getString(R.styleable.XEditText_custom_template);
         mClearDrawable = typedArray.getDrawable(R.styleable.XEditText_del_icon);
-        mDelIconTime = typedArray.getInt(R.styleable.XEditText_del_show_time, HAS_CONTENT_FOUCUS_SHOW);
+        mDelIconTime = typedArray.getInt(R.styleable.XEditText_del_show_time, DelIconShowTime.HAS_CONTENT_FOCUS_SHOW);
         // 校验和设置自定义的属性
-        setCustomAttrs(myTemplet, splitChar, customTemplet);
+        setCustomAttrs(xTemplate, splitChar, customTemplate);
         typedArray.recycle();
     }
 
     /**
      * 检验的设置自定的属性
      */
-    private void setCustomAttrs(int myTemplet, String splitChar, String customTemplet) {
+    private void setCustomAttrs(int xTemplate, String splitChar, String customTemplate) {
         // 校检设置的预定义模板
-        if (myTemplet > 0) {
-            if (1 == myTemplet) setMyTemplet(MyTemplet.PHONE);
-            else if (2 == myTemplet) setMyTemplet(MyTemplet.BANK_CARD);
-            else if (3 == myTemplet) setMyTemplet(MyTemplet.ID_CARD);
+        if (xTemplate > 0) {
+            if (1 == xTemplate) setXTemplate(XTemplate.PHONE);
+            else if (2 == xTemplate) setXTemplate(XTemplate.BANK_CARD);
+            else if (3 == xTemplate) setXTemplate(XTemplate.ID_CARD);
         }
         // 右边清除图片
         if (null == mClearDrawable) { // 没有定义就使用默认的图片
@@ -174,14 +193,14 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         mClearDrawable.setBounds(0, 0, mClearDrawable.getIntrinsicWidth(), mClearDrawable.getIntrinsicHeight());
         mCompoundDrawables = getCompoundDrawables();
         mClearDrawable.setVisible(false, false); // 最开始默认隐藏
-        setCompoundDrawables(mCompoundDrawables[0], mCompoundDrawables[1],
+        setCompoundDrawables(mCompoundDrawables[DRAWABLE_LEFT], mCompoundDrawables[DRAWABLE_TOP],
                 mClearDrawable.isVisible() ? mClearDrawable : null,
-                mCompoundDrawables[3]);
+                mCompoundDrawables[DRAWABLE_BOTTOM]);
         // 校检分隔符
         if (!TextUtils.isEmpty(splitChar)) mSplitChar = splitChar.charAt(0);
         // 校验自定义模板格式
-        if (!TextUtils.isEmpty(customTemplet) && customTemplet.contains(",")) {
-            String[] splits = customTemplet.split(",");
+        if (!TextUtils.isEmpty(customTemplate) && customTemplate.contains(",")) {
+            String[] splits = customTemplate.split(",");
             int length = splits.length;
             if (length > 1) {
                 int[] arr = new int[length];
@@ -189,10 +208,11 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
                     for (int i = 0; i < length; i++) {
                         arr[i] = Integer.parseInt(splits[i]);
                     }
-                    setTemplet(arr);
+                    setTemplate(arr);
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
-                    Log.e("XEditText", "自定义模板格式错误，请检查布局文件中的 custom_templet属性是否参照格式定义");
+                    if (BuildConfig.DEBUG)
+                        Log.e("XEditText", "自定义模板格式错误，请检查布局文件中的 custom_template属性是否参照格式定义");
                 }
             }
         }
@@ -221,7 +241,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
         setOnFocusChangeListener(new OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                changeDelShowStatu(getText(), hasFocus);
+                changeDelShowStatus(getText(), hasFocus);
                 if (null != mOnMyFocusChangeListener)
                     mOnMyFocusChangeListener.onFocusChange(v, hasFocus);
             }
@@ -234,7 +254,8 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * @param delDrawable 右边的图片
      * @return
      */
-    public XEditText setDelDrawable(Drawable delDrawable) {
+    public XEditText setDelDrawable(@NonNull Drawable delDrawable) {
+        if (delDrawable == null) return this;
         this.mClearDrawable = delDrawable;
         return this;
     }
@@ -253,14 +274,10 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     /**
      * 设置右边删除图片显示的时间，默认有内容并且有焦点时显示
      *
-     * @param delIconTime 设置右边删除图片显示的时间，取值<br/>
-     *                    XEditText.ALWAYS_SHOW：总是显示(一直显示)<br/>
-     *                    XEditText.ALWAYS_HIND：总是隐藏(从不显示)<br/>
-     *                    XEditText.HAS_CONTENT_SHOW：有内容时显示(不管焦点)<br/>
-     *                    XEditText.HAS_CONTENT_FOUCUS_SHOW：有内容并且有焦点时显示<br/>
+     * @param delIconTime 设置右边删除图片显示的时间
      * @return
      */
-    public XEditText setDelIconShowTime(int delIconTime) {
+    public XEditText setDelIconShowTime(@DelIconShowTime int delIconTime) {
         this.mDelIconTime = delIconTime;
         return this;
     }
@@ -269,13 +286,13 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * 设置EditText输入内容的最大长度<br/>
      * <b>注意：</b><br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * <b>1.如果调用了{@code setTemplet(@NonNull int[] templet)}方法设置了模板时可以不用在设置最大长度，因为设置了模板会根据模板计算出最大的长度</b><br/>
+     * <b>1.如果调用了{@code setTemplate(@NonNull int[] template)}方法设置了模板时可以不用在设置最大长度，因为设置了模板会根据模板计算出最大的长度</b><br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * <b>2.如果调用了{@code setTemplet(@NonNull int[] templet)}方法设置了模板的同时，还要设置最大长度，一定要加上分割符的长度(分隔符也占用EditText的长度)</b><br/>
+     * <b>2.如果调用了{@code setTemplate(@NonNull int[] template)}方法设置了模板的同时，还要设置最大长度，一定要加上分割符的长度(分隔符也占用EditText的长度)</b><br/>
      *
      * @param maxLength 最大长度
      * @return
-     * @see #setTemplet(int[])
+     * @see #setTemplate(int[])
      */
     public XEditText setMaxLength(int maxLength) {
         if (maxLength <= 0)
@@ -285,24 +302,24 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
     }
 
     /**
-     * 设置已经定义好的模板 {@link MyTemplet}，分割符为 ' '<br/>
+     * 设置已经定义好的模板 {@link XTemplate}，分割符为 ' '<br/>
      * <b>如果既设置了定义好的模板，又设置了自动以的模板，那么以最后一个生效</b>
      *
-     * @param myTemplete 定义好的模板 {@link MyTemplet}
+     * @param xTemplate 定义好的模板 {@link XTemplate}
      * @return
      */
-    public XEditText setMyTemplet(@NonNull MyTemplet myTemplete) {
-        if (null == myTemplete) return this;
+    public XEditText setXTemplate(@NonNull XTemplate xTemplate) {
+        if (null == xTemplate) return this;
         setSplitChar(mSplitChar);
-        switch (myTemplete) {
+        switch (xTemplate) {
             case PHONE: // 手机
-                setTemplet(new int[]{3, 4, 4});
+                setTemplate(new int[]{3, 4, 4});
                 break;
             case BANK_CARD: // 银行卡
-                setTemplet(new int[]{4, 4, 4, 4, 3});
+                setTemplate(new int[]{4, 4, 4, 4, 3});
                 break;
             case ID_CARD: // 身份证
-                setTemplet(new int[]{4, 4, 4, 4, 2});
+                setTemplate(new int[]{4, 4, 4, 4, 2});
                 break;
         }
         return this;
@@ -325,16 +342,16 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * 设置EditText分割样式，如 {@code new int[]{3,4,4}} 表示大陆手机号码的样式，<br/>
      * <b>注意：如果设置了模板，表示已经设置的最大的长度，如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
      *
-     * @param templet 模板样式 如：{@code new int[]{3,4,4}} 显示：132 1234 5678
+     * @param template 模板样式 如：{@code new int[]{3,4,4}} 显示：132 1234 5678
      * @return
      */
-    public XEditText setTemplet(@NonNull int[] templet) {
-        if (null == templet) return this;
-        int length = templet.length;
+    public XEditText setTemplate(@NonNull int[] template) {
+        if (null == template) return this;
+        int length = template.length;
         mSplitPosition = new int[length - 1];
         int temp = 0;
         for (int i = 0; i < length; i++) {
-            temp += templet[i];
+            temp += template[i];
             if (i < length - 1) {
                 mSplitPosition[i] = temp;
                 temp += 1;
@@ -349,12 +366,12 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
     /**
      * 设置需要格式化的文字<br/>
-     * 1.调用该方法前，请先调用<code>setTemplet(@NonNull int[] templet)</code>方法设置好模板或<br/>
-     * 2.直接调用<code>setToTextEdit(@NonNull String text, @NonNull int[] templet)</code>方法
+     * 1.调用该方法前，请先调用<code>setTemplate(@NonNull int[] template)</code>方法设置好模板或<br/>
+     * 2.直接调用<code>setToTextEdit(@NonNull String text, @NonNull int[] template)</code>方法
      *
      * @param text 需要格式化的内容
      * @return
-     * @see #setTemplet(int[])
+     * @see #setTemplate(int[])
      * @see #setToTextEdit(String, int[])
      */
     public XEditText setToTextEdit(@NonNull String text) {
@@ -382,14 +399,14 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * 指定模板设置格式化的文字，如果已经指定过模板了，可以调用<code>setToTextEdit(@NonNull String text)</code>方法<br/>
      * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
      *
-     * @param text    需要格式化的内容
-     * @param templet 格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
+     * @param text     需要格式化的内容
+     * @param template 格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
      * @return
-     * @see #setTemplet(int[])
+     * @see #setTemplate(int[])
      * @see #setToTextEdit(String)
      */
-    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] templet) {
-        setTemplet(templet);
+    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] template) {
+        setTemplate(template);
         return setToTextEdit(text);
     }
 
@@ -398,29 +415,29 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
      *
      * @param text      需要格式化的内容
-     * @param templet   格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
+     * @param template  格式化的模板，如：{@code setToTextEdit("13212345678",new int[]{3,4,4}}) 显示：132 1234 5678
      * @param splitChar 分隔符
      * @return
      * @see #setSplitChar(char)
-     * @see #setTemplet(int[])
+     * @see #setTemplate(int[])
      * @see #setToTextEdit(String)
      */
-    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] templet, @NonNull char splitChar) {
+    public XEditText setToTextEdit(@NonNull String text, @NonNull int[] template, @NonNull char splitChar) {
         setSplitChar(splitChar);
-        setTemplet(templet);
+        setTemplate(template);
         return setToTextEdit(text);
     }
 
     /**
      * 指定分隔符设置格式化的文字<br/>
-     * 调用该方法前，请先调用<code>setTemplet(@NonNull int[] templet)</code>方法设置好模板<br/>
+     * 调用该方法前，请先调用<code>setTemplate(@NonNull int[] template)</code>方法设置好模板<br/>
      * <b>注意：如果设置了模板没有设置分割符，使用默认{@code ' '}分隔符</b>
      *
      * @param text      需要格式化的内容
      * @param splitChar 分隔符
      * @return
      * @see #setSplitChar(char)
-     * @see #setTemplet(int[])
+     * @see #setTemplate(int[])
      * @see #setToTextEdit(String)
      */
     public XEditText setToTextEdit(@NonNull String text, @NonNull char splitChar) {
@@ -476,23 +493,23 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
      * @param text
      * @param hasFocus
      */
-    private void changeDelShowStatu(Editable text, boolean hasFocus) {
-        if (ALWAYS_SHOW == mDelIconTime) { // 总是显示
+    private void changeDelShowStatus(Editable text, boolean hasFocus) {
+        if (DelIconShowTime.ALWAYS_SHOW == mDelIconTime) { // 总是显示
             mClearDrawable.setVisible(true, false);
-        } else if (HAS_CONTENT_SHOW == mDelIconTime) { // 有内容就显示
+        } else if (DelIconShowTime.HAS_CONTENT_SHOW == mDelIconTime) { // 有内容就显示
             if (null != text && !TextUtils.isEmpty(text.toString()))
                 mClearDrawable.setVisible(true, false);
             else mClearDrawable.setVisible(false, false);
-        } else if (HAS_CONTENT_FOUCUS_SHOW == mDelIconTime) { // 有内容并且有焦点时显示
+        } else if (DelIconShowTime.HAS_CONTENT_FOCUS_SHOW == mDelIconTime) { // 有内容并且有焦点时显示
             if (null != text && !TextUtils.isEmpty(text.toString()) && hasFocus)
                 mClearDrawable.setVisible(true, false);
             else mClearDrawable.setVisible(false, false);
         } else { // 总是隐藏
             mClearDrawable.setVisible(false, false);
         }
-        setCompoundDrawables(mCompoundDrawables[0], mCompoundDrawables[1],
+        setCompoundDrawables(mCompoundDrawables[DRAWABLE_LEFT], mCompoundDrawables[DRAWABLE_TOP],
                 mClearDrawable.isVisible() ? mClearDrawable : null,
-                mCompoundDrawables[3]);
+                mCompoundDrawables[DRAWABLE_BOTTOM]);
     }
 
     /**
@@ -555,7 +572,7 @@ public class XEditText extends android.support.v7.widget.AppCompatEditText {
 
         @Override
         public void afterTextChanged(Editable s) {
-            changeDelShowStatu(s, isFocused());
+            changeDelShowStatus(s, isFocused());
             if (null != mOnTextChangeListener)
                 mOnTextChangeListener.afterTextChanged(s);
         }

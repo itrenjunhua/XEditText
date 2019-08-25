@@ -3,7 +3,12 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/.idea/codeStyles
+/.idea/caches
+/.idea/markdown-navigator
+/.idea/markdown-navigator.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
+.idea/caches/
